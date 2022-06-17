@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import "./App.css";
 
@@ -41,6 +41,8 @@ function App() {
   const [items, setItems] = useState(() => toDoItems);
 
   const [filterType, setFilterType] = useState("");
+
+  const [toSearch, setToSearch] = useState("");
 
   const handleChangeItem = (event) => {
     setItemToAdd(event.target.value);
@@ -87,6 +89,16 @@ function App() {
     );
   };
 
+  const handleMakeImportant = ({key}) => {
+    setItems((items) =>
+      items.map((item) => {
+        if (item.key === key) {
+          return { ...item, importance: !item.importance };
+        } else return item;
+      })
+    );
+  };
+
   const handleFilterItems = (type) => {
     setFilterType(type);
   };
@@ -102,6 +114,25 @@ function App() {
       ? items.filter((item) => !item.done)
       : items.filter((item) => item.done);
 
+  const handleToSearch = (event) => {
+    const userInput = event.target.value;
+    setToSearch(userInput);
+    if (userInput) {
+      const searchFilter = items.filter((item) => item.label.toLowerCase().includes(userInput.toLowerCase()));
+      setItems(searchFilter);
+    } else {
+      setItems(toDoItems);
+    }
+  }
+
+  const handleToDelete = ({key}) => {
+    const itemsToSave = items.filter((item) => item.key!==key);
+    setItems(itemsToSave);
+  }
+
+  useEffect(() => {
+    
+  })
   return (
     <div className="todo-app">
       {/* App-header */}
@@ -115,9 +146,11 @@ function App() {
       <div className="top-panel d-flex">
         {/* Search-panel */}
         <input
-          type="text"
+          type="search"
+          value={toSearch}
           className="form-control search-input"
           placeholder="type to search"
+          onChange={handleToSearch}
         />
         {/* Item-status-filter */}
         <div className="btn-group">
@@ -141,7 +174,7 @@ function App() {
         {filteredItems.length > 0 &&
           filteredItems.map((item) => (
             <li key={item.key} className="list-group-item">
-              <span className={`todo-list-item${item.done ? " done" : ""}`}>
+              <span className={`todo-list-item${item.done ? " done " : ""} ${item.importance ? "important" : ""}`}>
                 <span
                   className="todo-list-item-label"
                   onClick={() => handleItemDone(item)}
@@ -152,6 +185,7 @@ function App() {
                 <button
                   type="button"
                   className="btn btn-outline-success btn-sm float-right"
+                  onClick={() => handleMakeImportant(item)}
                 >
                   <i className="fa fa-exclamation" />
                 </button>
@@ -160,7 +194,10 @@ function App() {
                   type="button"
                   className="btn btn-outline-danger btn-sm float-right"
                 >
-                  <i className="fa fa-trash-o" />
+                  <i 
+                  className="fa fa-trash-o"
+                  onClick={() => handleToDelete(item)}   
+                    />
                 </button>
               </span>
             </li>
